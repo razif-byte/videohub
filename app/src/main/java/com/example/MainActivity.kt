@@ -86,6 +86,7 @@ class MainActivity : ComponentActivity() {
         val favoritesViewModel = FavoritesViewModel(videoRepository)
         val historyViewModel = HistoryViewModel(videoRepository)
         val settingsViewModel = SettingsViewModel(settingsRepository, videoRepository)
+        val loginViewModel = com.example.ui.login.LoginViewModel(settingsRepository)
 
         // Parse Deep Links (Section 28)
         val initialDeepLinkVideo = parseDeepLink(intent?.data)
@@ -94,15 +95,22 @@ class MainActivity : ComponentActivity() {
             val appSettings by settingsViewModel.settings.collectAsState()
 
             VideoHubTheme(themeMode = appSettings.themeMode) {
-                VideoHubApp(
-                    homeViewModel = homeViewModel,
-                    searchViewModel = searchViewModel,
-                    playerViewModel = playerViewModel,
-                    favoritesViewModel = favoritesViewModel,
-                    historyViewModel = historyViewModel,
-                    settingsViewModel = settingsViewModel,
-                    initialDeepLinkVideo = initialDeepLinkVideo
-                )
+                if (!appSettings.user.isLoggedIn) {
+                    com.example.ui.login.LoginScreen(
+                        viewModel = loginViewModel,
+                        onLoginSuccess = { /* Automatically switches via StateFlow */ }
+                    )
+                } else {
+                    VideoHubApp(
+                        homeViewModel = homeViewModel,
+                        searchViewModel = searchViewModel,
+                        playerViewModel = playerViewModel,
+                        favoritesViewModel = favoritesViewModel,
+                        historyViewModel = historyViewModel,
+                        settingsViewModel = settingsViewModel,
+                        initialDeepLinkVideo = initialDeepLinkVideo
+                    )
+                }
             }
         }
     }

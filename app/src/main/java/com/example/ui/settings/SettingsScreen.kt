@@ -3,6 +3,7 @@ package com.example.ui.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,10 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Brightness4
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Info
@@ -25,6 +28,7 @@ import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Source
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -57,6 +62,7 @@ import com.example.ui.components.tvFocusable
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
+    onTriggerAdPreview: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -234,6 +240,61 @@ fun SettingsScreen(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
+        }
+
+        // User Profile & Account
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(46.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = (settings.user.name.take(1).ifEmpty { "U" }).uppercase(),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = settings.user.name.ifEmpty { "Pengguna Video Hub" },
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "${settings.user.email.ifEmpty { "Log Masuk Aktif" }} • ${settings.user.provider}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { viewModel.logout() },
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onEnterClick = { viewModel.logout() })
+                    ) {
+                        Text("Log Keluar", fontSize = 12.sp, color = Color(0xFFFF5252))
+                    }
+                }
+            }
         }
 
         // Appearance
@@ -447,6 +508,29 @@ fun SettingsScreen(
             }
         }
 
+        // Iklan Promosi Nasadef (Requirement 2)
+        item {
+            SettingsCategoryCard(title = "Iklan Promosi Nasadef™", icon = Icons.Default.Campaign) {
+                Text(
+                    text = "Iklan promosi dipaparkan secara rawak setiap 20 minit penggunaan aktif bagi mempromosikan web app rasmi (Al-Quran Interaktif, Pemantauan Banjir IoT, Sky Metropolis 3D, dan Portal Nasadef).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                if (onTriggerAdPreview != null) {
+                    OutlinedButton(
+                        onClick = onTriggerAdPreview,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.tvFocusable(shape = RoundedCornerShape(8.dp), onEnterClick = onTriggerAdPreview)
+                    ) {
+                        Icon(imageVector = Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Pratonton Iklan Promosi Sekarang", fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+
         // About
         item {
             SettingsCategoryCard(title = "About Video Hub", icon = Icons.Default.Info) {
@@ -466,6 +550,11 @@ fun SettingsScreen(
                     Text("Phone, Tablet, Android TV", color = MaterialTheme.colorScheme.onSurface)
                 }
             }
+        }
+
+        // Nasadef Branding Footer
+        item {
+            com.example.ui.components.NasadefFooter()
         }
     }
 }

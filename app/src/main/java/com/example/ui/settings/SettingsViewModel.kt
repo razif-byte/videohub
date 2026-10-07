@@ -95,4 +95,10 @@ class SettingsViewModel(
             settingsRepository.clearAllSettings()
         }
     }
+
+    fun logout() {
+        viewModelScope.launch {
+            settingsRepository.logout()
+        }
+    }
 }

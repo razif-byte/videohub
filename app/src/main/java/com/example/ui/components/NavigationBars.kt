@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Bookmark
@@ -49,6 +50,7 @@ import com.example.domain.model.VideoProviderType
 enum class NavDestination(val route: String, val title: String, val icon: ImageVector) {
     HOME("home", "Home", Icons.Default.Home),
     SEARCH("search", "Search", Icons.Default.Search),
+    WEB("web", "Web", Icons.Default.Public),
     FAVORITES("favorites", "Favorites", Icons.Default.Bookmark),
     HISTORY("history", "History", Icons.Default.History),
     SETTINGS("settings", "Settings", Icons.Default.Settings);
@@ -120,20 +122,13 @@ fun VideoHubNavigationRail(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(top = 16.dp, bottom = 12.dp)
             ) {
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(42.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.PlayCircle,
-                            contentDescription = "Video Hub",
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.app_logo),
+                    contentDescription = "Video Hub",
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "HUB",

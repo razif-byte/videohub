@@ -10,14 +10,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.domain.model.AdPromotion
+import com.example.domain.model.AdPromotionCatalog
 import com.example.domain.model.VideoItem
 import com.example.domain.model.VideoProviderType
+import com.example.ui.components.AdPromotionDialog
 import com.example.ui.components.NavDestination
 import com.example.ui.components.VideoHubBottomBar
 import com.example.ui.components.VideoHubNavigationRail
@@ -33,6 +37,10 @@ import com.example.ui.search.SearchScreen
 import com.example.ui.search.SearchViewModel
 import com.example.ui.settings.SettingsScreen
 import com.example.ui.settings.SettingsViewModel
+import com.example.ui.web.WebScreen
+import com.example.ui.web.WebViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 @Composable
 fun VideoHubApp(
@@ -42,10 +50,20 @@ fun VideoHubApp(
     favoritesViewModel: FavoritesViewModel,
     historyViewModel: HistoryViewModel,
     settingsViewModel: SettingsViewModel,
+    webViewModel: WebViewModel = remember { WebViewModel() },
     initialDeepLinkVideo: VideoItem? = null
 ) {
     var currentRoute by remember { mutableStateOf(NavDestination.HOME.route) }
     var activeVideo by remember { mutableStateOf<VideoItem?>(initialDeepLinkVideo) }
+    var activePromoAd by remember { mutableStateOf<AdPromotion?>(null) }
+
+    // Every 20 minutes of active usage, display 1 random promotion ad (Requirement 2)
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            delay(20 * 60 * 1000L) // 20 minutes (1,200,000 ms)
+            activePromoAd = AdPromotionCatalog.getRandomAd()
+        }
+    }
 
     // Handle deep link video updates
     if (initialDeepLinkVideo != null && activeVideo == null) {
@@ -55,6 +73,19 @@ fun VideoHubApp(
     // Handle back button when player is open
     BackHandler(enabled = activeVideo != null) {
         activeVideo = null
+    }
+
+    // Show Ad Dialog if triggered
+    activePromoAd?.let { ad ->
+        AdPromotionDialog(
+            ad = ad,
+            onDismiss = { activePromoAd = null },
+            onOpenUrl = { url ->
+                activePromoAd = null
+                webViewModel.selectLinkByUrl(url)
+                currentRoute = NavDestination.WEB.route
+            }
+        )
     }
 
     if (activeVideo != null) {
@@ -88,12 +119,14 @@ fun VideoHubApp(
                             currentRoute = currentRoute,
                             homeViewModel = homeViewModel,
                             searchViewModel = searchViewModel,
+                            webViewModel = webViewModel,
                             favoritesViewModel = favoritesViewModel,
                             historyViewModel = historyViewModel,
                             settingsViewModel = settingsViewModel,
                             onVideoClick = { activeVideo = it },
                             onNavigateToSearch = { currentRoute = NavDestination.SEARCH.route },
-                            onNavigateToSettings = { currentRoute = NavDestination.SETTINGS.route }
+                            onNavigateToSettings = { currentRoute = NavDestination.SETTINGS.route },
+                            onTriggerAdPreview = { activePromoAd = AdPromotionCatalog.getRandomAd() }
                         )
                     }
                 }
@@ -117,12 +150,14 @@ fun VideoHubApp(
                             currentRoute = currentRoute,
                             homeViewModel = homeViewModel,
                             searchViewModel = searchViewModel,
+                            webViewModel = webViewModel,
                             favoritesViewModel = favoritesViewModel,
                             historyViewModel = historyViewModel,
                             settingsViewModel = settingsViewModel,
                             onVideoClick = { activeVideo = it },
                             onNavigateToSearch = { currentRoute = NavDestination.SEARCH.route },
-                            onNavigateToSettings = { currentRoute = NavDestination.SETTINGS.route }
+                            onNavigateToSettings = { currentRoute = NavDestination.SETTINGS.route },
+                            onTriggerAdPreview = { activePromoAd = AdPromotionCatalog.getRandomAd() }
                         )
                     }
                 }
@@ -136,12 +171,14 @@ fun NavigationContent(
     currentRoute: String,
     homeViewModel: HomeViewModel,
     searchViewModel: SearchViewModel,
+    webViewModel: WebViewModel,
     favoritesViewModel: FavoritesViewModel,
     historyViewModel: HistoryViewModel,
     settingsViewModel: SettingsViewModel,
     onVideoClick: (VideoItem) -> Unit,
     onNavigateToSearch: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onTriggerAdPreview: () -> Unit
 ) {
     when (currentRoute) {
         NavDestination.HOME.route -> HomeScreen(
@@ -154,6 +191,9 @@ fun NavigationContent(
             viewModel = searchViewModel,
             onVideoClick = onVideoClick
         )
+        NavDestination.WEB.route -> WebScreen(
+            viewModel = webViewModel
+        )
         NavDestination.FAVORITES.route -> FavoritesScreen(
             viewModel = favoritesViewModel,
             onVideoClick = onVideoClick
@@ -163,7 +203,8 @@ fun NavigationContent(
             onVideoClick = onVideoClick
         )
         NavDestination.SETTINGS.route -> SettingsScreen(
-            viewModel = settingsViewModel
+            viewModel = settingsViewModel,
+            onTriggerAdPreview = onTriggerAdPreview
         )
     }
 }

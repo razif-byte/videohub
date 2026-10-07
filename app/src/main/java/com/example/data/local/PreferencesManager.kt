@@ -19,6 +19,13 @@ enum class AppThemeMode {
     SYSTEM
 }
 
+data class AuthUser(
+    val isLoggedIn: Boolean = false,
+    val name: String = "",
+    val email: String = "",
+    val provider: String = ""
+)
+
 data class AppSettings(
     val themeMode: AppThemeMode = AppThemeMode.DARK,
     val autoFullscreen: Boolean = false,
@@ -28,7 +35,8 @@ data class AppSettings(
     val mobileDataAllowed: Boolean = true,
     val freeReelsBaseUrl: String = "https://freereels.com",
     val customYoutubeApiKey: String = "",
-    val customSources: Set<String> = emptySet()
+    val customSources: Set<String> = emptySet(),
+    val user: AuthUser = AuthUser()
 )
 
 class PreferencesManager(private val context: Context) {
@@ -43,6 +51,12 @@ class PreferencesManager(private val context: Context) {
     private val KEY_YOUTUBE_API_KEY = stringPreferencesKey("youtube_api_key")
     private val KEY_CUSTOM_SOURCES = stringSetPreferencesKey("custom_sources")
 
+    // Auth keys
+    private val KEY_IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
+    private val KEY_USER_NAME = stringPreferencesKey("user_name")
+    private val KEY_USER_EMAIL = stringPreferencesKey("user_email")
+    private val KEY_AUTH_PROVIDER = stringPreferencesKey("auth_provider")
+
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
         val themeStr = prefs[KEY_THEME] ?: AppThemeMode.DARK.name
         val themeMode = runCatching { AppThemeMode.valueOf(themeStr) }.getOrDefault(AppThemeMode.DARK)
@@ -56,8 +70,32 @@ class PreferencesManager(private val context: Context) {
             mobileDataAllowed = prefs[KEY_MOBILE_DATA_ALLOWED] ?: true,
             freeReelsBaseUrl = prefs[KEY_FREEREELS_BASE_URL] ?: "https://freereels.com",
             customYoutubeApiKey = prefs[KEY_YOUTUBE_API_KEY] ?: "",
-            customSources = prefs[KEY_CUSTOM_SOURCES] ?: emptySet()
+            customSources = prefs[KEY_CUSTOM_SOURCES] ?: emptySet(),
+            user = AuthUser(
+                isLoggedIn = prefs[KEY_IS_LOGGED_IN] ?: false,
+                name = prefs[KEY_USER_NAME] ?: "",
+                email = prefs[KEY_USER_EMAIL] ?: "",
+                provider = prefs[KEY_AUTH_PROVIDER] ?: ""
+            )
         )
+    }
+
+    suspend fun login(name: String, email: String, provider: String) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_IS_LOGGED_IN] = true
+            prefs[KEY_USER_NAME] = name
+            prefs[KEY_USER_EMAIL] = email
+            prefs[KEY_AUTH_PROVIDER] = provider
+        }
+    }
+
+    suspend fun logout() {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_IS_LOGGED_IN] = false
+            prefs[KEY_USER_NAME] = ""
+            prefs[KEY_USER_EMAIL] = ""
+            prefs[KEY_AUTH_PROVIDER] = ""
+        }
     }
 
     suspend fun setThemeMode(mode: AppThemeMode) {

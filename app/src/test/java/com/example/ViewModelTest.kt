@@ -30,7 +30,12 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class ViewModelTest {
 
@@ -141,5 +146,47 @@ class ViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(1, fakeFavoriteDao.list.size)
+    }
+
+    @Test
+    fun testLoginViewModelGoogleLogin() = runTest {
+        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val fakeRepo = object : SettingsRepository(com.example.data.local.PreferencesManager(context)) {
+            var loggedInName = ""
+            override suspend fun login(name: String, email: String, provider: String) {
+                loggedInName = name
+            }
+        }
+        val loginViewModel = com.example.ui.login.LoginViewModel(fakeRepo)
+        loginViewModel.loginWithGoogle("Test User")
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val state = loginViewModel.uiState.value
+        assertTrue(state is com.example.ui.login.LoginUiState.Success)
+        assertEquals("Test User", (state as com.example.ui.login.LoginUiState.Success).userName)
+        assertEquals("Test User", fakeRepo.loggedInName)
+    }
+
+    @Test
+    fun testWebViewModelAndLinks() {
+        val webViewModel = com.example.ui.web.WebViewModel()
+        val links = webViewModel.webLinks
+
+        assertEquals(4, links.size)
+        assertTrue(links.any { it.url == "https://razif-interaktif-al-quran.ai.studio" })
+        assertTrue(links.any { it.url == "https://sistem-pemantauan-banjir-iot.ai.studio" })
+        assertTrue(links.any { it.url == "https://remix-sky-metropolis-9687.ai.studio" })
+        assertTrue(links.any { it.url == "https://nasadef.com.my" })
+
+        webViewModel.selectLinkByUrl("https://sistem-pemantauan-banjir-iot.ai.studio")
+        assertEquals("https://sistem-pemantauan-banjir-iot.ai.studio", webViewModel.selectedWebLink.value.url)
+    }
+
+    @Test
+    fun testAdPromotionCatalog() {
+        val ad = com.example.domain.model.AdPromotionCatalog.getRandomAd()
+        assertNotNull(ad)
+        assertTrue(ad.title.isNotBlank())
+        assertTrue(ad.targetUrl.startsWith("https://"))
     }
 }

@@ -6,7 +6,16 @@ Video Hub is a production-ready video aggregator application for Android smartph
 
 ## 🌟 Key Features
 
-1. **Multi-Provider Architecture**:
+1. **Authentication Gate (`LoginScreen`)**:
+   - **Mandatory Login**: Users must authenticate before accessing the video aggregator.
+   - **Multiple Login Methods**:
+     - **Google Account**: Quick sign-in with Google profile.
+     - **NASA DEF Account**: Direct credentials sign-in (Nasadef ID & Password) or 1-Click SSO Guest Access.
+     - **Facebook Account**: Sign-in with Facebook profile.
+   - **Hero Banner**: Features official NASA DEF SDN BHD emblem backdrop.
+   - **Branding**: Includes RazifApps@Nasadef™ watermark (linking to `https://apps.nasadef.com.my`) and NASADEF™ SDN.BHD.® copyright footer (linking to `https://nasadef.com.my`).
+
+2. **Multi-Provider Architecture**:
    - **YouTube**: Official embedded playback (`youtube-nocookie.com`), video search, and direct YouTube URL handling.
    - **FreeReels**: Configurable base URL with graceful fallback ("FreeReels tidak membenarkan video ini dimainkan secara embedded") and direct website launcher.
    - **Web & Open Streams**: HTML5 video playback for open-access streams and user-defined custom video URLs.

@@ -157,6 +157,11 @@ fun HomeScreen(
                             }
                         }
                     }
+
+                    // Nasadef Copyright & Trademark Footer
+                    item {
+                        com.example.ui.components.NasadefFooter()
+                    }
                 }
             }
         }
@@ -172,28 +177,32 @@ fun HomeTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Modern Logo ▶ VIDEO HUB
+        // App Logo from Google Drive + VIDEO HUB title
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
         ) {
-            Icon(
-                imageVector = Icons.Default.PlayCircle,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(30.dp)
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.app_logo),
+                contentDescription = "Video Hub Logo",
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(8.dp))
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "VIDEO HUB",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Column {
+                Text(
+                    text = "VIDEO HUB",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                com.example.ui.components.NasadefWatermarkBadge()
+            }
         }
 
         IconButton(
